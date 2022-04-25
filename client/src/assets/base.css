@@ -1,0 +1,54 @@
+
+.form-check-input {
+  margin-left: 15px;
+     padding: 15px;
+}
+.form-group {
+  margin: 10px 0px;
+}
+.atomic-btn{
+  display: flex;
+  align-items: center;
+}
+nav{
+  background-color: #5C942C !important;
+}
+.auth-wrapper{
+  background-color: #0E312C !important;
+}
+.auth-inner{
+  background-color: #99844B !important;
+}
+input{
+  background-color: #A78725 !important;
+  border: 1px solid #0E312C !important;
+}
+input:hover{
+  opacity: 0.9 !important;
+}
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+::placeholder {
+  color: #0E312C !important; 
+  opacity: 0.9 !important;
+}
+button{
+  background-color: #5C942C !important;
+  color: black !important;
+  border: 1px solid #0E312C  !important;
+}
+button:hover {
+  opacity: 0.9 !important;
+}
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+#app{
+  background-color: #0E312C;
+}
+html{
+  background-color: #0E312C;
+}
