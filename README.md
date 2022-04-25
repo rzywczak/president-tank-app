@@ -1,5 +1,5 @@
 # president-tank-app
-Application allows you to register / log in and manage tanks (add, edit and delete).
+Application allows you to register, log in and manage tanks (add, edit and delete).
 
 ## How to run an application locally
 1. First download app or gitclone then in server and client folder type: 
