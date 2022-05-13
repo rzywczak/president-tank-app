@@ -13,6 +13,7 @@
 import { mapGetters } from "vuex";
 import Tanks from "./Tanks.vue";
 
+
 export default {
   name: "Home",
   computed: {
@@ -22,9 +23,6 @@ export default {
     Tanks,
   },
   methods: {
-    reload() {
-      location.reload();
-    },
   },
 };
 

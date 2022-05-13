@@ -31,7 +31,8 @@ export default {
       this.$router
         .push('/manage')
         .then(() => {
-          location.reload();
+          Tanks.methods.loadTanks;
+     
         })
         .catch((err) => {
           console.log(err);

@@ -28,12 +28,11 @@
               <div class="modal fade" id="CreateModal" tabindex="-1" aria-labelledby="exampleModalLabel">
                 <div class="modal-dialog">
                   <div class="modal-content">
-                    <Form autocomplete="off" @submit="addTank" :validation-schema="schema">
+                    <Form autocomplete="off" @submit="addTank"  :validation-schema="schema">
                        <div class="modal-header">
                       <h5 class="modal-title" id="exampleModalLabel">Add tank</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                     <error v-if="error" :error="error" />
                     <div class="modal-body">
                       <div class="form-group">
                         <label>Side number</label>
@@ -204,20 +203,45 @@
                   ><i class="material-icons">&#xE254;</i></a
                 >
 
-                <a class="delete" title="Delete" data-toggle="tooltip" @click="deleteTank(tank._id)"
+                <a class="delete" title="Delete" data-toggle="tooltip" data-bs-toggle="modal" data-bs-target="#DeleteModal" @click="deleteTankIdForm(tank._id)"
                   ><i class="material-icons">&#xE872;</i></a
                 >
+
+                
+                   <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                      <Form @submit="deleteTank()" :disabled="processing" >
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel">Delete tank</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <h4>Delete this tank?</h4>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button class="btn btn-primary">Delete</button>
+                      </div>
+                    </Form>
+                  </div>
+                </div>
+              </div>
+
+
               </td> 
               </tr>
+
+
               <div class="modal fade" id="UpdateModal" tabindex="-1" aria-labelledby="exampleModalLabel">
                 <div class="modal-dialog">
                   <div class="modal-content">
-                      <Form @submit="updateTank" :validation-schema="schema">
+                      <Form @submit="updateTank" :disabled="processing" :validation-schema="schema">
                     <div class="modal-header">
                       <h5 class="modal-title" id="exampleModalLabel">Update tank</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                     <error v-if="error" :error="error" />
+                     <!-- <error v-if="error" :error="error" /> -->
                     <div class="modal-body">
                       <div class="form-group">
                         <label>Side number</label>
@@ -347,13 +371,14 @@
                   </div>
                 </div>
               </div>
-           
+
+
           </tbody>
         </table>
       </div>
         <div class="btn-page">
-          <button class="btn " @click="loadLessData">Previous</button>
-          <button class="btn" @click="loadMoreData">Next</button>
+          <button class="btn " @click="loadLessData" v-show="isVisible">Previous</button>
+          <button class="btn" @click="loadMoreData" v-show="isVisible" >Next</button>
         </div>
       </div>
     </div>
@@ -365,11 +390,13 @@ import axios from "axios";
 import { mapGetters } from "vuex";
 import { Field, Form, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
+import authHeader from "../../auth-header.js";
+import UpdateTank from "./tanks/UpdateTank.vue"
+import TankList from "./tanks/TankList.vue"
 
 let previousPage = 5;
 let nextPage = 0;
-let today = new Date();
-let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+
 
 
 export default {
@@ -381,8 +408,12 @@ export default {
     Field,
     Form,
     ErrorMessage,
+    UpdateTank,
+    TankList
   },
   data() {
+  let today = new Date();
+  let minDate =  new Date('1970-01-01');
 
       const schema = yup.object({
         sideNumber: yup.string().required().max(255),
@@ -390,7 +421,7 @@ export default {
         model: yup.string().required().max(255),
         currentModification: yup.string().required().max(255),
         productonYear: yup.number().required().min(1900).max(2022),
-        introductionToCountry: yup.date().required().min("1970-01-01").max((date)),
+        introductionToCountry: yup.date().required().max(today).min(minDate),
         course: yup.number().required().positive().lessThan(999999),
         ammunition: yup.number().required().positive().lessThan(999999),
         armorSide: yup.number().required().positive().lessThan(999),
@@ -400,8 +431,10 @@ export default {
       });
 
     return {
-       
+      error: "",
+      isVisible: false,
       loading: false,
+      processing: false,
       tanks: [],
       sideNumber: "",
       producent: "",
@@ -416,30 +449,36 @@ export default {
       armorBack: "",
       id: "",
       schema,
+      deleteTankId: "",
     };
   },
   created() {
-    this.loadTanks();
+    this.loadTanks()
   },
   methods: {
-    loadTanks() {
+   async loadTanks() {
       this.loading = true;
-      axios
-        .get("tanks?sortBy=createdAt_asc&limit=" + previousPage + "&skip=" + nextPage)
+     await axios.get("tanks?sortBy=createdAt_asc&limit=" + 5 + "&skip=" + nextPage, { headers: authHeader() })
         .then((response) => {
+          if(response.data.length === 0 && nextPage === 0) {
+            this.isVisible = false;   
+          }
+          if(response.data.length > 0) {
+            this.isVisible = true;
+          }
+       
           (this.loading = false), (this.tanks = response.data);
         })
         .catch((error) => {
+          console.log(error)
           this.loading = false;
-          console.log(error);
         });
     },
     async addTank(values) {
+      if (this.processing) return;
+      this.processing = true
       try {
         await axios.post("tanks", {
-          header: {
-            Authorization: `Bearer ${localStorage.token}`,
-          },
           sideNumber: values.sideNumber,
           producent: values.producent,
           model: values.model,
@@ -452,32 +491,34 @@ export default {
           armorFront: values.armorFront,
           armorBack: values.armorBack,
           user: this.user._id,
-        });
+        }, {headers: authHeader()});
+
         this.loadTanks();
-        location.reload();
+        this.$router.push('/manage')
       } catch (e) {
        this.error = "Something went wrong!";
       }
+      this.processing = false
     },
-    async deleteTank(id) {
+    async deleteTank() {
+          if (this.processing) return;
+         this.processing = true
       try {
-        await axios.delete(`tanks/${id}`, {
-          header: {
-            Authorization: `Bearer ${localStorage.token}`,
-          },
+        await axios.delete(`tanks/${this.deleteTankId}`, {
+           headers: authHeader(),
         });
         this.loadTanks();
       } catch (e) {
         console.log(e);
       }
+        this.processing = false
     },
     async updateTank(values) {
+      if (this.processing) return;
+      this.processing = true
       try {
         await axios.patch(`tanks/${this.id}`, {
-          header: {
-            Authorization: `Bearer ${localStorage.token}`,
-          },
-          data: {
+
             sideNumber: values.sideNumber,
             producent: values.producent,
             model: values.model,
@@ -489,12 +530,15 @@ export default {
             armorSide: values.armorSide,
             armorFront: values.armorFront,
             armorBack: values.armorBack,
-          },
-        });
+        }, {headers: authHeader()});
         this.loadTanks();
       } catch (e) {
         console.log(e);
       }
+      this.processing = false
+    },
+    deleteTankIdForm(tankId){
+      this.deleteTankId=tankId;
     },
     clearForm() {
       this.sideNumber = "";

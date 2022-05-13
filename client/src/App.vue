@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from "vue-router";
 import Nav from "./components/Nav.vue";
 import axios from "axios";
+import authHeader from "../auth-header.js";
 
 export default {
   name: "App",
@@ -9,8 +10,16 @@ export default {
     Nav,
   },
   async created() {
-    const response = await axios.get("users/:id");
-    this.$store.dispatch("user", response.data);
+    try {
+      const authHeaderToken = authHeader();
+      if (authHeaderToken.Authorization === null) {
+        return;
+      }
+      const response = await axios.get("users/:id", { headers: authHeader() });
+      this.$store.dispatch("user", response.data);
+    } catch (e) {
+      console.log(e.message);
+    }
   },
 };
 </script>
@@ -21,7 +30,7 @@ export default {
 
     <div class="auth-wrapper">
       <router-view />
-    </div>  
+    </div>
   </div>
 </template>
 
@@ -71,7 +80,7 @@ html,
 }
 .auth-inner {
   width: 450px;
-  margin-top: 135px!important;
+  margin-top: 135px !important;
   margin: auto;
   box-shadow: 0px 14px 80px rgba(34, 35, 58, 0.2);
   padding: 20px 55px 25px 35px;
@@ -83,44 +92,40 @@ html,
 }
 
 @media screen and (max-width: 768px) {
-
-   .auth-inner {
-  display: flex;
-  width: 350px;
-  font-size: 0.7rem!important;
-   }
+  .auth-inner {
+    display: flex;
+    width: 350px;
+    font-size: 0.7rem !important;
+  }
 }
 @media screen and (max-width: 576px) {
-     .auth-inner {
-  display: flex;
-  width: 250px;
-  font-size: 0.7rem!important;
-     }
+  .auth-inner {
+    display: flex;
+    width: 250px;
+    font-size: 0.7rem !important;
+  }
   img {
     width: 35px;
-    height: 35px
+    height: 35px;
   }
-} 
- 
-  @media screen and (max-width: 250px) {
+}
 
-   .auth-inner {
-  display: flex;
-  width: 200px;
-  font-size: 0.7rem!important;
-  
-   }
-  .form-control{
-    font-size: 0.7rem!important;
+@media screen and (max-width: 250px) {
+  .auth-inner {
+    display: flex;
+    width: 200px;
+    font-size: 0.7rem !important;
+  }
+  .form-control {
+    font-size: 0.7rem !important;
     width: 130px !important;
   }
-  .atomic-btn{
+  .atomic-btn {
     display: flex;
     flex-direction: row !important;
   }
-  .form-check-input{
+  .form-check-input {
     padding: 8px !important;
   }
-
 }
 </style>

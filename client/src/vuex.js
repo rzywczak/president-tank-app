@@ -1,7 +1,9 @@
 import Vuex from 'vuex'
 
+
+
 const state = {
-    user: null
+    user: null,
 }
 
 const store = new Vuex.Store({

@@ -7,7 +7,6 @@
         <div class="form-group">
           <label>Name <ErrorMessage class="error" name="name" /> </label>
           <Field name="name" type="text" class="form-control" placeholder="Name" />
-         
         </div>
 
         <div class="form-group">
@@ -17,19 +16,16 @@
         <div class="form-group">
           <label>Email <ErrorMessage class="error" name="email" /></label>
           <Field name="email" type="text" class="form-control" placeholder="Email" />
-         
         </div>
 
         <div class="form-group">
           <label>Password <ErrorMessage class="error" name="password" /></label>
           <Field name="password" type="password" class="form-control" placeholder="Password" />
-         
         </div>
 
         <div class="form-group">
           <label>Repeat password <ErrorMessage class="error" name="repeatPassword" /></label>
           <Field name="repeatPassword" type="password" class="form-control" placeholder="Repeat password" />
-        
         </div>
 
         <div class="form-group atomic-btn">
@@ -38,9 +34,8 @@
           <label class="form-check-label radio">yes</label>
           <Field name="atomicButton" type="radio" class="form-check-input radio" :value="false" />
           <label class="form-check-label radio">no</label>
-           <ErrorMessage class="error-radio" name="atomicButton" />
+          <ErrorMessage class="error-radio" name="atomicButton" />
         </div>
-       
 
         <button class="btn btn-primary btn-block">Sign Up</button>
       </Form>
@@ -71,6 +66,7 @@ export default {
   data() {
     return {
       CountryLabel,
+      processing: false,
       schema: yup.object({
         name: yup.string().required(),
         country: yup.string().required(),
@@ -95,39 +91,39 @@ export default {
   },
   methods: {
     async handleSubmit(values) {
-      console.log(values);
+      if (this.processing) return;
+      this.processing = true;
       try {
-        const response = await axios.post("users", {
-          name: values.name,
-          country: values.country,
-          email: values.email,
-          password: values.password,
-          atomicButton: values.atomicButton,
-        });
-        console.log(response);
+        const response = await axios.post(
+          "users",
+          {
+            name: values.name,
+            country: values.country,
+            email: values.email,
+            password: values.password,
+            atomicButton: values.atomicButton,
+          },
+          { withCredentials: true }
+        );
+
         localStorage.setItem("token", response.data.token);
         this.$store.dispatch("user", response.data.user);
         await this.$router
-          .push('/manage')
+          .push("/manage")
           .then(() => {
-            location.reload();
+            // Tanks.methods.loadTanks;
           })
           .catch((err) => {
             console.log(err);
+            this.processing = true;
           });
       } catch (e) {
         this.error = "Something went wrong!";
       }
+      this.processing = false;
     },
     loadData() {
-      this.$router
-        .push('/manage')
-        .then(() => {
-          location.reload();
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.$router.push("/manage");
     },
   },
 };

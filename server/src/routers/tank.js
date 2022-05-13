@@ -3,15 +3,14 @@ const Tank = require("../models/tank");
 const auth = require("../middleware/auth");
 const router = new express.Router();
 
-router.post("/api/tanks", auth, (req, res) => {
+router.post("/api/tanks", auth, async(req, res) => {
   const tank = new Tank({
     ...req.body,
     owner: req.body.user,
   });
   try {
-     tank.save().then(() => {
-      res.status(201).send(tank);
-    });
+       await tank.save()
+       await res.status(201).send(tank);
   } catch (e) {
     res.status(500).send(e);
   }
@@ -57,7 +56,7 @@ router.get("/api/tanks/:id", auth, async (req, res) => {
 });
 // update  tank
 router.patch("/api/tanks/:id", auth, async (req, res) => {
-  const updates = Object.keys(req.body.data);
+  const updates = Object.keys(req.body);
   const allowedUpdates = [
     "sideNumber",
     "producent",
@@ -71,7 +70,6 @@ router.patch("/api/tanks/:id", auth, async (req, res) => {
     "armorFront",
     "armorBack",
   ];
-  console.log(req.body.data)
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -79,6 +77,8 @@ router.patch("/api/tanks/:id", auth, async (req, res) => {
   if (!isValidOperation) {
     return res.status(400).send("Invalid data");
   }
+
+
   try {
     const tank = await Tank.findOne({
       _id: req.params.id,
@@ -90,7 +90,7 @@ router.patch("/api/tanks/:id", auth, async (req, res) => {
     }
 
     updates.forEach((update) => {
-      tank[update] = req.body.data[update];
+      tank[update] = req.body[update];
     });
     await tank.save();
     res.send(tank);
@@ -108,7 +108,7 @@ router.delete("/api/tanks/:id", auth, async (req, res) => {
     if (!tank) {
       res.status(404).send();
     }
-    res.send(tank);
+    res.status(204).send(tank);
   } catch (e) {
     res.status(500).send();
   }
